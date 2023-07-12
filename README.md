@@ -1,11 +1,16 @@
 # Application Security Notes 
 ![grusome_appsec](./grusome_appsec.png)
 
-- Links to supplementary resources or credits are added wherever required.
-- Feel free to raise a PR for any corrections.
+<sup> 
+  Meme credit: "Application Security Should be a Badge of Honor, not a Wall of Shame," by 
+  <a href="https://www.cobalt.io"> Cobalt.</a> 
+</sup>
 
 ## Topics:
+
 - This is an ever-growing checklist that expands with my never-ending learning. 🤓
+- Links to supplementary resources or credits are added within the notes.
+- I'm no expert ... Feel free to raise a PR with any corrections.
 
 ### Web Application Security
 - [x] OWASP Top 10
