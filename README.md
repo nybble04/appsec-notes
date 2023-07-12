@@ -1,6 +1,11 @@
 # Application Security Notes 
+![grusome_appsec](./grusome_appsec.png)
 
-This is a never ending checklist. It continues to grow as I learn or plan to learn something. Links to supplementary resources or credits are added wherever required. Feel free to raise a PR for any corrections.
+- Links to supplementary resources or credits are added wherever required.
+- Feel free to raise a PR for any corrections.
+
+## Topics:
+- This is an ever-growing checklist that expands with my never-ending learning. 🤓
 
 ### Web Application Security
 - [x] OWASP Top 10
