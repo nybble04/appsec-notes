@@ -42,7 +42,7 @@
 ### API Security
 - [x] OWASP Top 10
 - [x] REST API
-- [ ] GraphQL
+- [x] GraphQL
 
 ### Thick Client Security
 - [x] Cries in noob 😭
