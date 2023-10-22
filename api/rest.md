@@ -1,4 +1,4 @@
-# Application Program Interface (API) Testing
+# Representational State Transfer (REST) API Testing
 
 ## Enumerating API endpoints
 The first step for API testing is to find the endpoints and their expected behaviour.
