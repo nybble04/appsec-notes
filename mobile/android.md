@@ -31,6 +31,7 @@ Profiles allow to separate app data for various uses like work or personal or ki
 **Reverse engineering android**
 
 Development: Java/Kotlin source --> DEX Bytecode
+
 Reverse Engineering: DEX Bytecode --> SMALi --> Decompiled Java/Kotlin source
 
 **Application Signing**
