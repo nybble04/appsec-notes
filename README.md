@@ -35,7 +35,7 @@
 - [ ] HTTP Host header Attacks
 
 ### Mobile Security
-- [ ] OWASP Top 10
+- [x] OWASP Top 10
 - [x] Android
 - [ ] iOS 
 
