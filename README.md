@@ -10,7 +10,7 @@
 
 - This is an ever-growing checklist that expands with my never-ending learning. 🤓
 - Links to supplementary resources or credits are added within the notes.
-- I'm no expert ... Feel free to raise a PR with any corrections.
+- I'm no expert, so feel free to raise a PR with any corrections.
 
 ### Web Application Security
 - [x] OWASP Top 10
@@ -19,6 +19,7 @@
 - [x] Open redirect
 - [x] SSRF
 - [x] SQLi
+- [ ] NoSQLi
 - [x] XPATHi
 - [x] XXE
 - [x] LFI, RFI
@@ -27,12 +28,17 @@
 - [x] Broken Access Control, IDOR
 - [x] Clickjacking
 - [x] Business Logic Flaws
+- [ ] Race Conditions
+- [ ] HTTP Host header Attacks
+- [ ] OAuth 2.0
+- [ ] SAML
+- [ ] Web Socket Vulnerabilities
+- [ ] Insecure deserialization
 - [ ] Prototype Pollution
 - [ ] HTTP Request Smuggling
-- [ ] OAuth 2.0
-- [ ] Web Socket Vulnerabilities
 - [ ] Web Cache Poisoning
-- [ ] HTTP Host header Attacks
+- [ ] DOM vulnerabilities
+
 
 ### Mobile Security
 - [x] OWASP Top 10
@@ -45,4 +51,12 @@
 - [x] GraphQL
 
 ### Thick Client Security
-- [x] Cries in noob 😭
+- [ ] Thick/Heavy/Rich/Fat client 
+
+### DevSecOps Concepts
+- [ ] DevOps Intro
+- [ ] Agile Methodology
+- [ ] CI/CD
+- [ ] SAST
+- [ ] SCA
+- [ ] Threat Models
