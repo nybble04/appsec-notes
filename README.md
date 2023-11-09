@@ -43,7 +43,7 @@
 ### Mobile Security
 - [x] OWASP Top 10
 - [x] Android
-- [ ] iOS 
+- [x] iOS 
 
 ### API Security
 - [x] OWASP Top 10
