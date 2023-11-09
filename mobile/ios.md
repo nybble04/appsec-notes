@@ -16,7 +16,7 @@
 
 # iOS File System
 - Bundle directory - `/var/containers/Bundle/Application/[RANDOM_UUID]`
-- Runtime data storage - `/var/mobile/Containers/Data/[RANDOM_UUID]`
+- Runtime data storage (Data directory) - `/var/mobile/Containers/Data/[RANDOM_UUID]`
 - **Special Purpose Directories**
   - User generated contents - `Documents/`
   - Non-user generated contents - `Library/`
@@ -24,18 +24,6 @@
     - `Library/Caches/` - Cache data
     - `Library/Preferences/` - Preference files
   - Temporary storage - `tmp/`
-- **Data Protection Classes** - Defines when keys to decrypt application files are available. 
-  - `NSFileProtectionComplete` - Decryption keys are available only when unlock, without any exceptions
-  - `NSFileProtectionCompleteUnlessOpen` - Decryption keys are available only when unlocked, with the exception of the files that remain open when locked
-  - `NSFileProtectionCompleteUntilFirstUserAuthentication` - Decryption keys are available once the device is booted and unlocked, untill the next reboot and unlock
-  - `NSFileProtectionNone` - Decryption keys available always
-    
-  To see the data protection settings:
-  ```
-  frida -U --codeshare ay-kay/iosdataprotection <app_name>
-  getDataProtectionKeyForPath()
-  getDataProtectionKeyForAllPaths()
-  ```
 
 # Jail Breaking
 The process of removing software restrictions imposed by the manufacturer through kernel patching.
@@ -47,8 +35,7 @@ Types:
 3. Semi-tethered - It will boot as a normal (non-jailbroken) device without a computer. But to access the jailbroken features, it should be booted with a computer.
 4. Semi-untethered - It will boot as a normal (non-jailbroken) device. An app is used to access the jailbroken features.
 
-
-# Test environment
+## Test devices
 - Jailbroken device (use with caution)
   - [Checkra1n exploit](https://checkra.in/) - Cydia
   - iOS 15.x-16.x [Palera1n exploit](https://github.com/palera1n) - Sileo Nightly
@@ -93,8 +80,19 @@ Types:
   rabin2 -T Payload/[Application_Name].app/[Application_Name]
   ```
 - ⭐ **Database files** 
-  - Look for `.db , .sqlite, .sqlite3` files
-  - Look for sensitive data. Analyze their data protection class.
+  - Look for sensitive information within `.db , .sqlite , .sqlite3` files.
+  - Analyze the Data Protection Classes assigned to these files, i.e. when keys to decrypt these files are made available
+    - `NSFileProtectionComplete` - Decryption keys are available only when unlock, without any exceptions
+    - `NSFileProtectionCompleteUnlessOpen` - Decryption keys are available only when unlocked, with the exception of the files that remain open when locked
+    - `NSFileProtectionCompleteUntilFirstUserAuthentication` - Decryption keys are available once the device is booted and unlocked, untill the next reboot and unlock
+    - `NSFileProtectionNone` - Decryption keys available always
+  
+  To see the data protection settings:
+  ```
+  frida -U --codeshare ay-kay/iosdataprotection <app_name>
+  getDataProtectionKeyForPath()
+  getDataProtectionKeyForAllPaths()
+  ```
   
 # Dynamic Analysis
 
@@ -107,7 +105,7 @@ pip3 install frida-tools
 pip3 install objection
 ```
 
-Step 1- Patch the iPA that was pulled (downloaded locally)
+Step 1 - Patch the iPA that was pulled (downloaded locally)
 ```
 objection patchipa --source <pulled_ipa> -c <developer_profile_code_sign>
 ```
@@ -135,7 +133,10 @@ ios sslpinning disable
 - [SSL Kill Switch 2](https://github.com/nabla-c0d3/ssl-kill-switch2)
 - [SSL Kill Switch for higher versions of iOS](https://github.com/nabla-c0d3/ssl-kill-switch2/issues/98)
 
-## Common Attacks
+# Automated Analysis
+- Use [MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF)
+
+# Common Attacks
 
 ⭐⭐ Read these case studies by Cobalt
 - [Part 1](https://www.cobalt.io/blog/learning-ios-app-pentesting-and-security-part-1)
@@ -148,34 +149,36 @@ ios sslpinning disable
   - Vulnerable third party library
   - Improper implementation of SSL pinning
 
-### 1. Bypass Jailbreak detection
-- Using Objection
-  - `ios jailbreak disable`
-- If tools don't work, you will need to patch (reverse engineer) the source and remove the detection logic - Ghidra can be used.
-
-### 2. Fingerprint bypass
-- Using Objection
-  - `ios UI biometrics_bypass`
-
-### 3. Keychain dumping
+## 1. Keychain/NSURLCredential dumping
+- Requires jailbroken device
 - Using Objection
   - `ios keychain dump --json keychains.json`
+  - `ios nsurlcredentialstorage dump`
 
-### 4. Hacking WebViews
+## 2. Sensitive information in logs/backups
+- Logs
+  - Check using the "Open Console" feature in Xcode
+- Backups
+  - Create a backup - [see article](https://support.apple.com/en-us/HT212156)
+  - Find the backup - [see article](https://support.apple.com/en-us/HT204215)
+  - Check if backup is encrypted - Look for `IsEncrypted` in `Manifest.plist`
+  - See if you can modify the backup and restore it to achieve uninteded behaviour on the app - [read Bither case study](https://book.hacktricks.xyz/mobile-pentesting/ios-pentesting#backups)
+
+## 3. Hacking WebViews
 Types of WebViews
-- ⛔ UIWebView (insecure)
+- ⛔ **UIWebView (insecure)**
   - JavaScript can't be disabled - good for XSS
   - Can't restrict access to files
   - No SOP for "file://" scheme - `loadHTMLString:baseURL` has NULL origin
   - Runs in-process
   - Authentication: Can see all traffic of the app (even 3rd party authentication)
-- ✔️ WKWebView (more secure)
+- ✔️ **WKWebView (more secure)**
   - JavaScript can be disabled
   - Can restrict access to files
   - The `loadHTMLString:baseURL` NULL origin vulnerability is fixed
   - Runs out-of-process
   - Authentication: Can see all traffic of the app (even 3rd party authentication)
-- ✔️ SFSafariViewController
+- ✔️ **SFSafariViewController**
   - Authentication: Does not see any data/traffic of the app. This does not provide not a good user experience (user has to login everytime)
   - SFAuthenticationSession - Cookies and website data is shared (deprecated)
   - ASWEbAuthenticationSession - Same as above, but does not save the session cookies
@@ -190,8 +193,29 @@ Types of WebViews
  frida-trace -U -m "*[UIWebView load*]" <app_name>
  ```
 
-# Automated Analysis
-- Use [MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF)
+## 4. Sensitive information in current screen's Snapshot
+- When an app is running and the home button is pressed (task switching), a snapshot of the current screen is saved for smooth transition
+- It is persistent across reboots
+- If a page with sensitive information is not blanked out when the home button is pressed, it's snapshot will have this information
+  ```
+  Library/Caches/Snapshots/
+  Library/SplashBoard/Snapshots/
+  ```
+
+## 5. Cookies
+- Cookies are stored in `Library/Cookies/cookies.binarycookies` - this will be backed up
+- Sometimes cookies are stored in keychain - this wont be backed up
+- Using Objection
+  - `ios cookies get`
+
+## 6. Bypass Jailbreak detection
+- Using Objection
+  - `ios jailbreak disable`
+- If tools don't work, you will need to patch (reverse engineer) the source and remove the detection logic - Ghidra can be used.
+
+## 7. Fingerprint bypass
+- Using Objection
+  - `ios UI biometrics_bypass`
 
 **References:**
 1. [iOS Pentesting 101 by Cobalt](https://www.cobalt.io/blog/ios-pentesting-101)
