@@ -245,3 +245,8 @@ Choose the AVD name from the list and run it using the emulator command
 ```
 emulator -avd <name> -writeable-system -no-snapshot
 ```
+
+### Resources
+1. [Android Pentesting by Byte Theories](https://www.youtube.com/playlist?list=PL1f72Oxv5SylOECx9M34pLZlNa7YkJJ14)
+2. [Android Pentesting by Hacker101](https://www.hacker101.com/playlists/mobile_hacking.html)
+3. [Android Pentesting by HackTricks](https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting)
