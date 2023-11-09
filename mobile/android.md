@@ -246,7 +246,49 @@ Choose the AVD name from the list and run it using the emulator command
 emulator -avd <name> -writeable-system -no-snapshot
 ```
 
+# Common Attacks
+
+## 1. Exported Activities
+- Exported activities can be accessed directly
+  - Authentication/authorization bypass
+  - Return sensitive information/results
+  - Tapjacking - make user perform unexpected actions
+  ```
+  adb shell am start -n <package_name>/<activity_name>
+  Eg: adb shell am start -n com.example.package.com/com.example.test.ExportedActivity
+  ```
+
+## 2. Data Leak through Content Provider 
+- Content Providers provide a way for data to be shared between processes
+- After decompiling using JADX-GUI or apktool, search for `content://` to see the content providers
+- Invoke a content provider URL that seems interesting **as a non-root user** - If data is visible then it is a vulnerability
+```
+# Using ADB
+adb shell content query --url content://com.example.package.CoolApp/secret
+
+# Using Drozer
+run app.provider.query content://com.example.package.CoolApp/secret --vertical
+```
+Check the following content provider attack vectors at [hacktricks](https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting/drozer-tutorial/exploiting-content-providers#exploiting-content-providers) using Drozer
+- File read
+- Path Traversal
+- SQL Injection
+
+## 3. Insecure Broadcast Receiver
+- A broadcast receiver listens for specific Android-broadcast or custom-broadcast messages.
+- These broadcast messages are sent out when a specific event occurs. Broadcast receivers are part of a publish-subscribe communication model.
+- To test for vulnerabilities
+  - Identify broadcast receivers using drozer
+    ```
+    run app.broadcast.info -a <app_package>
+    ```
+  - Check the code, specifically the `onCreate` function of the Activity and `onReceive` function of the Broadcast Receiver
+  - See how the message/even affects the functionality of the broadcast receiver. Then see if it can be modified to perform an attack.
+    - Eg: If the event takes a user supplied URL and opens it in a WebView - we can trigger this broadcast message ourselves and make it render a malicious URL. [Watch video](https://www.youtube.com/watch?v=_Bp6QNDND3s)
+
 ### Resources
 1. [Android Pentesting by Byte Theories](https://www.youtube.com/playlist?list=PL1f72Oxv5SylOECx9M34pLZlNa7YkJJ14)
 2. [Android Pentesting by Hacker101](https://www.hacker101.com/playlists/mobile_hacking.html)
 3. [Android Pentesting by HackTricks](https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting)
+4. [Android Pentesting by BitsPlease](https://www.youtube.com/playlist?list=PLgnrksnL_Rn09gGTTLgi-FL7HxPOoDk3R)
+5. [Mobile App Pentesting by HackingSimplified](https://www.youtube.com/playlist?list=PLGJe0xGh7cH2lszCZ7qwsqouEK23XCMGp)
