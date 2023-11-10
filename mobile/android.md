@@ -75,12 +75,12 @@ Step 6: Pull (download) the apk to the local system for analysis
 adb pull <path_name> <saveas_name.apk>
 ```
 
-### Decompile and view files
+### APK Tool/JADX - Decompile and view files
 Using apktool (Linux)
 ```
 sudo apt install apktook
 ```
-Step 7 (alt): Decompile `d` the apk. If the application is too large then do not decompile the resources `-r`.
+Step 7: Decompile `d` the apk. If the application is too large then do not decompile the resources `-r`.
 ```
 apktool d -r <pulled_apk>
 ```
@@ -292,9 +292,31 @@ emulator -avd <name> -writeable-system -no-snapshot
   adb shell am start -n <package_name>/<activity_name>
   Eg: adb shell am start -n com.example.package.com/com.example.test.ExportedActivity
   ```
+## 2. Intent Injection
+- Intents are messages passed between activities of the same or different applications. It describes an action to be taken.
+- If an intent object is passed to methods such as `startActivity` or `sendBroadcast`, then an attacker could potentially abuse this to inject a malicious intent telling the app to start a non-exported activity.
+- To test for vulnerabilities
+  - Identify intents from AndroidManifest.xml. Search for `<intent-filter>`
+  - Go to the source code of the activity and check the functionality in `onCreate`. Focus on how the return value of `getIntent.getParcelableExtra` function is being handled.
+    - Is it being passed to `startActivity` or `sendBroadcast` ? This can be abused [See video](https://www.youtube.com/watch?v=Vw7I99AR-Iw&list=PLGJe0xGh7cH2lszCZ7qwsqouEK23XCMGp&index=10)
+  - See if WebView changes a URL to an Intent object - `Intent.parseUri`
+    - - Is it being passed to `startActivity` or `sendBroadcast` ? This can be abused [See hacktricks](https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting#intent-injection)
 
-## 2. Data Leak through Content Provider 
-- Content Providers provide a way for data to be shared between processes
+## 3. Insecure schemes or deeplinks
+- A deeplink is a link that contains all the information to identify a resource on the internet. It is different from a URL because it need not always have an authority/path/query/fragment.
+- In the context of mobile applications, deeplinks enable the usage of application specific schemes such as `twitter://profile/12345678`. This will open the link within the Twitter app.
+- To test for vulnerabilities
+  - Look for activities that have `android:scheme` defined
+  - Go to the source code of the activity and check the functionality in `onCreate` and the `getIntent` or `onNewIntent` functions
+  - Check if it is accepting a **user supplied url that is not validated**. [Watch video](https://www.youtube.com/watch?v=jn2qkLH_wjU&list=PLGJe0xGh7cH2lszCZ7qwsqouEK23XCMGp&index=7) . This can be used for path traversal, open redirect or CSRF.
+  - Check if it is accepting **sensitive data via URL parameters**. If so, a rogue application could accept that scheme and steal the data.
+    ```
+    # Testing using ADB - can be used to automate a large number of requests
+    adb shell am start -a "<activity_name>" -d "fb://something/?random=value"
+    ```
+
+## 4. Data Leak through Content Provider 
+- Content Providers provide a way for data to be shared between processes. [See video](https://www.youtube.com/watch?v=DCzhsibPfh8&list=PLgnrksnL_Rn09gGTTLgi-FL7HxPOoDk3R&index=10)
 - After decompiling using JADX-GUI or apktool, search for `content://` to see the content providers
 - Invoke a content provider URL that seems interesting **as a non-root user** - If data is visible then it is a vulnerability
 ```
@@ -306,10 +328,10 @@ run app.provider.query content://com.example.package.CoolApp/secret --vertical
 ```
 Check the following content provider attack vectors at [hacktricks](https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting/drozer-tutorial/exploiting-content-providers#exploiting-content-providers) using Drozer
 - File read
-- Path Traversal
+- Path Traversal. [See video](https://www.youtube.com/watch?v=si1LhLHhmzk&list=PLgnrksnL_Rn09gGTTLgi-FL7HxPOoDk3R&index=12)
 - SQL Injection
 
-## 3. Insecure Broadcast Receiver
+## 5. Insecure Broadcast Receiver
 - A broadcast receiver listens for specific Android-broadcast or custom-broadcast messages.
 - These broadcast messages are sent out when a specific event occurs. Broadcast receivers are part of a publish-subscribe communication model.
 - To test for vulnerabilities
@@ -320,10 +342,15 @@ Check the following content provider attack vectors at [hacktricks](https://book
   - Check the code, specifically the `onCreate` function of the Activity and `onReceive` function of the Broadcast Receiver
   - See how the message/even affects the functionality of the broadcast receiver. Then see if it can be modified to perform an attack.
     - Eg: If the event takes a user supplied URL and opens it in a WebView - we can trigger this broadcast message ourselves and make it render a malicious URL. [Watch video](https://www.youtube.com/watch?v=_Bp6QNDND3s)
-
+   
 ### Resources
 1. [Android Pentesting by Byte Theories](https://www.youtube.com/playlist?list=PL1f72Oxv5SylOECx9M34pLZlNa7YkJJ14)
 2. [Android Pentesting by Hacker101](https://www.hacker101.com/playlists/mobile_hacking.html)
 3. [Android Pentesting by HackTricks](https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting)
 4. [Android Pentesting by BitsPlease](https://www.youtube.com/playlist?list=PLgnrksnL_Rn09gGTTLgi-FL7HxPOoDk3R)
 5. [Mobile App Pentesting by HackingSimplified](https://www.youtube.com/playlist?list=PLGJe0xGh7cH2lszCZ7qwsqouEK23XCMGp)
+
+### Practice
+1. [Insecure Shop](https://github.com/hax0rgb/InsecureShop) + [docs](https://docs.insecureshopapp.com/)
+2. [DIVA Android](https://github.com/payatu/diva-android)
+3. [Damn-Vulnerable-Bank](https://github.com/rewanthtammana/Damn-Vulnerable-Bank)
