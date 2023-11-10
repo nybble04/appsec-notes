@@ -75,16 +75,26 @@ Step 6: Pull (download) the apk to the local system for analysis
 adb pull <path_name> <saveas_name.apk>
 ```
 
-### JADX-GUI - Decompile and view files
+### Decompile and view files
+Using apktool (Linux)
+```
+sudo apt install apktook
+```
+Step 7 (alt): Decompile `d` the apk. If the application is too large then do not decompile the resources `-r`.
+```
+apktool d -r <pulled_apk>
+```
 
-Install JADX (Linux)
+OR
+
+Using JADX-GUI (Linux)
 ```
 sudo apt install default-jdk
 sudo apt install jadx
 ```
-Step 7: Open JADX and import the pulled apk. 
+Step 7: Open JADX-GUI and import the pulled apk. 
 
-**Step 8🌟:** Check `AndroidManifest.xml` in `Resources/res/`. Look for the following
+:star: **Step 8:** Check `AndroidManifest.xml` in `Resources/res/`. Look for the following
 
 Refer: [Lucideus - Security Review of Android Manifest File Part I](https://medium.com/@lucideus/security-review-of-android-manifest-file-part-i-ecb5ca51eb6a)
 
@@ -102,24 +112,13 @@ Refer: [Lucideus - Security Review of Android Manifest File Part I](https://medi
 - Look for Firebase URLs. Then test firebase using [this guide](https://cloud.hacktricks.xyz/pentesting-cloud/gcp-pentesting/gcp-services/gcp-databases-enum/gcp-firebase-enum). 
 - Look for any AWS storage bucket names. Proceed with tools like [cloud_enum](https://github.com/initstring/cloud_enum)
 
-**Step 9🌟:** Check `Strings.xml` in `Resources/res/resources.arsc/res/values/`. Look for the following
+:star: **Step 9:** Check `Strings.xml` in `Resources/res/resources.arsc/res/values/`. Look for the following
 - Hardcoding sensitive strings. AWS ID, storage bucket names.
 - Interesting strings (mangled, encoded) that are used in the code. Analyze the code where this is being used. Check if it can be bypassed.
 
-**Step 10🌟:** Other files for static analysis
+:star: **Step 10:** Other files for static analysis
 - Flutter applications - `libapp.so`
 - React native applications - `index.android.bundle`
-
-### APKTOOL - Decompile and view files (alternative for JADX)
-
-Install apktool (Linux)
-```
-sudo apt install apktook
-```
-Step 7 (alt): Decompile `d` the apk. If the application is too large then do not decompile the resources `-r`.
-```
-apktool d -r <pulled_apk>
-```
 
 # Dynamic Analysis
 
@@ -141,21 +140,24 @@ In Android Studio's AVD settings
 - Select "Manual proxy configuration 
 - Enter Burp Proxy's configuration into this
 
-## ⚠️ SSL Pinning and Bypassing it using Frida
+## ⚠️ SSL Pinning
 - It is a security mechanism
 - It prevents man-in-the-middle attack by importing a malicious certificate.
 - The app is made to trust only a particular certificate. It won't trust the malicious certificate.
-- **Bypass SSL Pinning** : This is done using Objection and Frida.
 
-### Automatically Patching (injecting Frida) Applications using Objection
+## SSL Pinning Bypass
 
-Install Frida and then install Objection (order is important)
+### 1. Objection/Frida
+
+**Case 1 - Automatically Patching (injecting Frida) Applications using Objection**
+
+Step 1: Install Frida and then install Objection (order is important)
 ```
 pip3 install frida-tools
 pip3 install objection
 ```
 
-Step 1: Patch the APK that was pulled (downloaded locally) using ADB
+Step 2: Patch the APK that was pulled (downloaded locally) using ADB
 ```
 objection patchapk --source <pulled_apk>
 ```
@@ -163,7 +165,7 @@ Patched APK will be saved as `<pulled_apk>.objection.apk`. Sometimes this app wi
 
 > Note: If you get a "Invalid resource directory name: ...." error. The app might be using Kotlin, and there might be a parsing error. In this case, use `objection patchapk --source <pulled_apk> --useaapt2`
 
-### Manually Patching (injecting Frida) Applications using APKTool, Keytool, jarsigner and zipalign
+**Case 2 - Manually Patching (injecting Frida) Applications using APKTool, Keytool, jarsigner and zipalign**
 
 **Refer:** [Guide](https://koz.io/using-frida-on-android-without-root/)
 
@@ -208,7 +210,7 @@ jarsigner -verify repackaged.apk
 zipalign 4 repackaged.apk repackaged-final.apk
 ```
 
-### Patching Split APKs using Objection
+**Case 3 - Patching Split APKs using Objection**
 
 **Split APK:** If the APK is split into multiple smaller APKs.
 
@@ -226,6 +228,39 @@ objection signapk split_config.2.apk
 Step 3: Install the patched APK to the emulator using ` adb install-multiple`
 ```
 adb install-multiple base.objection.apk split_config.1.objection.apk split_config.2.objection.apk
+```
+
+### 2. Using iptables
+**Refer**: [Guide](https://infosecwriteups.com/bypass-ssl-pinning-with-ip-forwarding-iptables-568171b52b62)
+
+`vboxnet1` - Interface of the android emulator
+
+`wlan0` - Interface of the host machine running Burp Proxy
+
+**In Android device**
+
+Step 1: Configure static IP address to one that is in the vboxnet subnet
+
+Step 2: Set gateway to the vboxnet IP address
+
+Step 3: Set DNS to 8.8.8.8
+
+Step 4: Save and reboot
+
+**In the host machine (Linux)**
+
+Step 1: Start Burp proxy on port 8081
+
+Step 2: Enable IP forwarding
+```
+echo 1 > /proc/sys/net/ipv4/ip_forward
+```
+
+Step 3: Setup port forwarding using iptables
+```
+sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+sudo iptables -t nat -A PREROUTING -p tcp -i vboxnet1 --dport 80 -j REDIRECT --to-port 8081
+sudo iptables -t nat -A PREROUTING -p tcp -i vboxnet1 --dport 443 -j REDIRECT --to-port 8081
 ```
 
 ## Automated Static and Dynamic Analysis
