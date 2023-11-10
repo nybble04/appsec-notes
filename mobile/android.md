@@ -342,6 +342,30 @@ Check the following content provider attack vectors at [hacktricks](https://book
   - Check the code, specifically the `onCreate` function of the Activity and `onReceive` function of the Broadcast Receiver
   - See how the message/even affects the functionality of the broadcast receiver. Then see if it can be modified to perform an attack.
     - Eg: If the event takes a user supplied URL and opens it in a WebView - we can trigger this broadcast message ourselves and make it render a malicious URL. [Watch video](https://www.youtube.com/watch?v=_Bp6QNDND3s)
+
+## 6. Root detection bypass
+- Using Objection
+  ```
+  # In the android device shell
+  ./frida
+  # In the host
+  objection -g <app_package> explore
+  android root disable
+  ```
+- Manual code changes
+  - Decompile the app in JADX-GUI and find the code that checks for root
+  - Now decompile the app using apktool and find the smali equivalent of the above code
+  - Modify it, like making it return false
+  - Save -> rebuild -> sign
+  ```
+  apktool b com.patchme.rootapp -o test.apk
+  d2j-apk-sign test.apk test_signed.apk
+  ```
+- Frida scripts
+  ```
+  frida -U --codeshare dzonerzy/fridantiroot -f com.patchme.rootapp --no-pause
+  ```
+- See more bypasses by [Kishor Balan](https://kishorbalan.medium.com/my-fav-7-methods-for-bypassing-android-root-detection-f8afb0ddfaf3)
    
 ### Resources
 1. [Android Pentesting by Byte Theories](https://www.youtube.com/playlist?list=PL1f72Oxv5SylOECx9M34pLZlNa7YkJJ14)
