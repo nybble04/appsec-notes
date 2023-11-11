@@ -54,7 +54,7 @@
 - [ ] Thick/Heavy/Rich/Fat client 
 
 ### DevSecOps Concepts
-- [ ] Concepts - ShiftLeft, Agile, CI/CD, SAST/SCA
+- [x] Concepts - ShiftLeft, Agile, CI/CD, SAST/SCA
 - [x] Docker Security
 - [ ] Kubernetes Security
 - [ ] Threat Modeling
