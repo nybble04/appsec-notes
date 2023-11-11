@@ -55,6 +55,6 @@
 
 ### DevSecOps Concepts
 - [ ] Concepts - ShiftLeft, Agile, CI/CD, SAST/SCA
-- [ ] Docker Security
+- [x] Docker Security
 - [ ] Kubernetes Security
 - [ ] Threat Modeling
