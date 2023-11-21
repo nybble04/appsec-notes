@@ -1,10 +1,5 @@
 # Application Security Notes 
-![grusome_appsec](./grusome_appsec.png)
-
-<sup> 
-  Meme credit: "Application Security Should be a Badge of Honor, not a Wall of Shame," by 
-  <a href="https://www.cobalt.io"> Cobalt.</a> 
-</sup>
+![devsecops components](./appsec.png)
 
 ## Topics:
 
