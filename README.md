@@ -46,7 +46,7 @@
 - [x] GraphQL
 
 ### Thick Client Security
-- [ ] Thick/Heavy/Rich/Fat client 
+- [x] Thick/Heavy/Rich/Fat client 
 
 ### DevSecOps Concepts
 - [x] Concepts - ShiftLeft, Agile, CI/CD, SAST/SCA
