@@ -1,11 +1,11 @@
-# Application Security Notes 
+# Cyber Security Notes 
 ![devsecops components](./appsec.png)
-
-## Topics:
 
 - This is an ever-growing checklist that expands with my never-ending learning. 🤓
 - Links to supplementary resources or credits are added within the notes.
 - I'm no expert, so feel free to raise a PR with any corrections.
+
+## 1. Application Security Topics:
 
 ### Web Application Security
 - [x] OWASP Top 10
@@ -53,3 +53,29 @@
 - [x] Docker Security
 - [ ] Kubernetes Security
 - [ ] Threat Modeling
+
+## 2. Network/Infrastructure Security Topics:
+
+### Enumeration and Foothold
+- [ ] Common ports and services
+- [ ] Password cracking
+
+### Privilege Escalation
+- [ ] Windows
+- [ ] Linux
+
+### Buffer Overflow
+- [ ] Vanilla/Simple stack BoF
+
+### Lateral movement
+- [ ] Pivoting and tunneling
+
+### Active Directory Attacks
+- [ ] AS REP roasting
+- [ ] Kerberoasting
+- [ ] GPP credentials
+- [ ] Golden Ticket
+- [ ] Silver Ticket
+
+### Wireless security
+- [ ] Wifi WPA2
